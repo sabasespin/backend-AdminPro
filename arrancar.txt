@@ -2,6 +2,8 @@
 
 C:\Program Files\MongoDB\Server\3.2\bin>mongod --storageEngine mmapv1 --dbpath C:\DATA\DB
 
-var serveIndex = require('serve-index');
-app.use(express.static(__dirname + '/'))
-app.use('/uploads', serveIndex(__dirname + '/uploads'));
+Id de cliente Admin-Pro-Login
+419484852627-99rfscrjr5h17cq51duuuf8pb5d47o7v.apps.googleusercontent.com
+
+Secret cliente
+I1xoPMVA3zQDrIoSdgKSWZqI
