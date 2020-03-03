@@ -23,7 +23,7 @@ async function verify(token) {
         //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
     });
     const payload = ticket.getPayload();
-    const userid = payload['sub'];
+    // const userid = payload['sub'];
 
     return {
         nombre: payload.name,
@@ -33,6 +33,8 @@ async function verify(token) {
     }
 
 }
+
+// Autenticacion con google
 
 app.post('/google', async(req, res) => {
     var token = req.body.token;
@@ -44,6 +46,7 @@ app.post('/google', async(req, res) => {
                 error: err
             })
         })
+        // console.log('user google', googleUser);
 
     Usuario.findOne({ email: googleUser.email }, (err, usuariodb) => {
         if (err) {
@@ -53,44 +56,52 @@ app.post('/google', async(req, res) => {
                 error: err
             });
         }
+        if (usuariodb) {
 
-        if (usuariodb.google === false) {
-            return res.status(400).json({
-                ok: false,
-                mensaje: 'Debe usar su autenticacion normal'
-            });
+            if (usuariodb.google === false) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Debe usar su autenticacion normal'
+                });
+            } else {
+                var token = jwt.sign({ usuario: usuariodb }, SEED, { expiresIn: 200000 });
+                res.status(200).json({
+                    ok: true,
+                    usuario: usuariodb,
+                    id: usuariodb._id,
+                    token: token
+                });
+            }
         } else {
-            var token = jwt.sign({ usuario: usuariodb }, SEED, { expiresIn: 200000 });
-            res.status(200).json({
-                ok: true,
-                usuario: usuariodb,
-                id: usuariodb._id,
-                token: token
-            });
-        }
-        if (usuariodb.google === true) {
+
             usuario = new Usuario();
-            usuario.nombre = googleUser.name;
+
+            usuario.nombre = googleUser.nombre;
             usuario.email = googleUser.email;
             usuario.img = googleUser.img;
-            usuario.nombre = googleUser.name;
+            usuario.google = true;
             usuario.password = '(..)';
 
+            // Grabar Usuario
+            usuario.save((err, usuariodb) => {
+                if (err) {
+                    return res.status(500).json({
+                        ok: false,
+                        mensaje: 'Error al grabar el usuario',
+                        error: err
+                    });
+                }
+                var token = jwt.sign({ usuario: usuariodb }, SEED, { expiresIn: 200000 });
+                res.status(200).json({
+                    ok: true,
+                    usuario: usuariodb,
+                    id: usuariodb.id,
+                    token: token
+                });
+
+            })
+
         }
-
-        usuario.save((err, usuariodb) => {
-            var token = jwt.sign({ usuario: usuariodb }, SEED, { expiresIn: 200000 });
-            res.status(200).json({
-                ok: true,
-                usuario: usuariodb,
-                id: usuariodb._id,
-                token: token
-            });
-
-        })
-
-
-
 
     });
 
@@ -100,7 +111,6 @@ app.post('/google', async(req, res) => {
     //     googleUser: googleUser
     // })
 });
-
 
 
 // autenticacion normal
